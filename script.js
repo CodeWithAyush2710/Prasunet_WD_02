@@ -1,35 +1,64 @@
-let intervalId;
-const timer = document.getElementById('timer');
-const startBtn = document.getElementById('start-btn');
-const stopBtn = document.getElementById('stop-btn');
-const resetBtn = document.getElementById('reset-btn');
-let seconds = 0;
-let minutes = 0;
-let hours = 0;
+// script.js
+let startTime;
+let elapsedTime = 0;
+let timerInterval;
 
-startBtn.addEventListener('click', function() {
-  intervalId = setInterval(function() {
-    seconds++;
-    if (seconds >= 60) {
-      seconds = 0;
-      minutes++;
-      if (minutes >= 60) {
-        minutes = 0;
-        hours++;
-      }
+const display = document.getElementById('display');
+const startStopButton = document.getElementById('startStop');
+const lapResetButton = document.getElementById('lapReset');
+const lapButton = document.getElementById('lap');
+const lapsList = document.getElementById('laps');
+
+startStopButton.addEventListener('click', startStop);
+lapResetButton.addEventListener('click', reset);
+lapButton.addEventListener('click', lap);
+
+function startStop() {
+    if (startStopButton.innerHTML === 'Start') {
+        startStopButton.innerHTML = 'Stop';
+        startTime = Date.now() - elapsedTime;
+        timerInterval = setInterval(updateTime, 10);
+    } else {
+        startStopButton.innerHTML = 'Start';
+        clearInterval(timerInterval);
     }
-    timer.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  }, 1000);
-});
+}
 
-stopBtn.addEventListener('click', function() {
-  clearInterval(intervalId);
-});
+function updateTime() {
+    const currentTime = Date.now();
+    elapsedTime = currentTime - startTime;
+    display.textContent = formatTime(elapsedTime);
+}
 
-resetBtn.addEventListener('click', function() {
-  clearInterval(intervalId);
-  seconds = 0;
-  minutes = 0;
-  hours = 0;
-  timer.textContent = '00:00:00';
-});
+function formatTime(milliseconds) {
+    let hours = Math.floor(milliseconds / 3600000);
+    let minutes = Math.floor((milliseconds % 3600000) / 60000);
+    let seconds = Math.floor((milliseconds % 60000) / 1000);
+    let centiseconds = Math.floor((milliseconds % 1000) / 10);
+
+    return (
+        pad(hours) + ':' +
+        pad(minutes) + ':' +
+        pad(seconds) + ':' +
+        pad(centiseconds)
+    );
+}
+
+function pad(number) {
+    return (number < 10 ? '0' : '') + number;
+}
+
+function reset() {
+    clearInterval(timerInterval);
+    startStopButton.innerHTML = 'Start';
+    elapsedTime = 0;
+    display.textContent = '00:00:00:00';
+    lapsList.innerHTML = '';
+}
+
+function lap() {
+    const lapTime = formatTime(elapsedTime);
+    const lapItem = document.createElement('li');
+    lapItem.textContent = lapTime;
+    lapsList.appendChild(lapItem);
+}
